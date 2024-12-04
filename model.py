@@ -215,6 +215,7 @@ num_epochs = 10
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 autoencoder.to(device)
+autoencoder.load_state_dict(torch.load("autoencoder.pth"))
 
 for epoch in range(num_epochs):
     print(f"Epoch {epoch + 1}/{num_epochs}")
