@@ -8,6 +8,7 @@ from PIL import Image
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 class CelebADataset(Dataset):
     def __init__(self, img_dir, attr_path, partition_path, transform=None, split="train"):
@@ -103,9 +104,7 @@ class Encoder(nn.Module):
 
 
     def forward(self, x):
-        print('Init : ', x.shape)
         x = self.model(x)
-        print('latent shape : ', x.shape)
         return x
 
 class Decoder(nn.Module):
@@ -124,20 +123,16 @@ class Decoder(nn.Module):
         
 
     def forward(self, z, attributs):
-
-        print('latent shape : ', z.shape)
         att = attributs
         attributs_transformed = torch.cat([(att == 1).float().unsqueeze(-1), 
                                         (att == 0).float().unsqueeze(-1)], dim=-1)
         latent_code = attributs_transformed.view(att.size(0), -1)
         latent_code = latent_code.unsqueeze(-1).unsqueeze(-1)
         latent_code0 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
-        print(latent_code.shape)
 
         # Append latent code to the feature maps at every layer.
         z = torch.cat([z, latent_code0], dim=1)
         z = self.relu(self.deconv1(z))
-        print('premiere deconv')
 
         latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
 
@@ -168,7 +163,6 @@ class Decoder(nn.Module):
 
         z = torch.cat([z, latent_code1], dim=1)
         z = self.relu(self.deconv7(z)) 
-        print('Image shape : ', z.shape)
         return z
 
 class AutoEncoder(nn.Module):
@@ -217,25 +211,39 @@ optimizer_autoencoder = optim.Adam(autoencoder.parameters(), lr=0.001)
 reconstruction_loss = nn.MSELoss()
 #discriminator_loss = nn.BCELoss()
 
-num_epochs=10
+num_epochs = 10
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+autoencoder.to(device)
+
 for epoch in range(num_epochs):
-    for images, attributs in dataloader:
+    print(f"Epoch {epoch + 1}/{num_epochs}")
+    autoencoder.train()
+    
+    epoch_loss = 0  # Pour calculer la perte moyenne sur l'époque
+    num_batches = len(dataloader)
+    
+    # Boucle sur les batches avec tqdm
+    for images, attributs in tqdm(dataloader, desc=f"Training Epoch {epoch + 1}"):
         # Autoencoder
+        
+        images, attributs = images.to(device), attributs.to(device)
         pred_images = autoencoder(images, attributs)
 
         recon_loss = reconstruction_loss(pred_images, images)
 
-
-        pred_attributes = discriminator(E.view(32, 512, 1, 1))
-#        disc_loss = discriminator_loss(pred_attributes, attributs)
-
-#        lambda_adv = 0.0001
-#        encoder_loss = recon_loss - lambda_adv * disc_loss
-
         optimizer_autoencoder.zero_grad()
         recon_loss.backward()
-
         optimizer_autoencoder.step()
+
+        # Accumuler la perte pour calculer la moyenne
+        epoch_loss += recon_loss.item()
+
+    # Afficher la perte moyenne à la fin de l'époque
+    epoch_loss /= num_batches
+    torch.save(autoencoder.state_dict(), "autoencoder.pth")
+    print(f"Epoch {epoch + 1}/{num_epochs} - Average Reconstruction Loss: {epoch_loss:.4f}")
+
 
  #       optimizer_discriminator.zero_grad()
 #        disc_loss.backward()
