@@ -78,7 +78,7 @@ for images, attrs in dataloader:
     print(attrs.shape)
     image = images[0] 
     attributs = attrs[0]
-    affiche(dataset, image, attributs)
+    #affiche(dataset, image, attributs)
     break
 
 class Encoder(nn.Module):
@@ -113,6 +113,7 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         self.num_attributes = num_attributes
         self.latent_dim = 2 * num_attributes
+        self.relu = nn.ReLU()
         self.deconv1 = nn.ConvTranspose2d(512 + self.latent_dim, 512, kernel_size=4, stride=2, padding=1)
         self.deconv2 = nn.ConvTranspose2d(512 + self.latent_dim, 256, kernel_size=4, stride=2, padding=1)
         self.deconv3 = nn.ConvTranspose2d(256 + self.latent_dim, 128, kernel_size=4, stride=2, padding=1)
@@ -125,31 +126,49 @@ class Decoder(nn.Module):
     def forward(self, z, attributs):
 
         print('latent shape : ', z.shape)
-        latent_code = attributs.view(batch_size, self.latent_dim, 1, 1)  # Reshape latent code.
-
+        att = attributs
+        attributs_transformed = torch.cat([(att == 1).float().unsqueeze(-1), 
+                                        (att == 0).float().unsqueeze(-1)], dim=-1)
+        latent_code = attributs_transformed.view(att.size(0), -1)
+        latent_code = latent_code.unsqueeze(-1).unsqueeze(-1)
+        latent_code0 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
+        print(latent_code.shape)
 
         # Append latent code to the feature maps at every layer.
-        z = torch.cat([z, latent_code], dim=1)
+        z = torch.cat([z, latent_code0], dim=1)
         z = self.relu(self.deconv1(z))
+        print('premiere deconv')
 
-        z = torch.cat([z, latent_code], dim=1)
+        latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
+
+        z = torch.cat([z, latent_code1], dim=1)
         z = self.relu(self.deconv2(z))
+        
+        latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
 
-        z = torch.cat([z, latent_code], dim=1)
+        z = torch.cat([z, latent_code1], dim=1)
         z = self.relu(self.deconv3(z))
+        
+        latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
 
-        z = torch.cat([z, latent_code], dim=1)
+        z = torch.cat([z, latent_code1], dim=1)
         z = self.relu(self.deconv4(z))
+        
+        latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
 
-        z = torch.cat([z, latent_code], dim=1)
+        z = torch.cat([z, latent_code1], dim=1)
         z = self.relu(self.deconv5(z))
+        
+        latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
 
-        z = torch.cat([z, latent_code], dim=1)
+        z = torch.cat([z, latent_code1], dim=1)
         z = self.relu(self.deconv6(z))
+        
+        latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
 
-        z = torch.cat([z, latent_code], dim=1)
+        z = torch.cat([z, latent_code1], dim=1)
         z = self.relu(self.deconv7(z)) 
-        print('Image shape : ', x.shape)
+        print('Image shape : ', z.shape)
         return z
 
 class AutoEncoder(nn.Module):
@@ -188,6 +207,7 @@ class Discriminator(nn.Module):
 torch.autograd.set_detect_anomaly(True)
 
 autoencoder = AutoEncoder()
+discriminator = Discriminator()
 optimizer_autoencoder = optim.Adam(autoencoder.parameters(), lr=0.001)
 
 #discriminator = Discriminator()
