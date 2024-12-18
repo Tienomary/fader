@@ -180,63 +180,41 @@ class Discriminator(nn.Module):
     def __init__(self, latent_dim=512, num_attributes=40):
         super(Discriminator, self).__init__()
         # c512: une  couche convol
-        self.conv = nn.ConvTranspose2d(latent_dim, 512, kernel_size=4, stride=2, padding=1) 
+        self.conv = nn.Conv2d(latent_dim, 512, kernel_size=4, stride=2, padding=1) 
         self.fc = nn.Sequential(
-            nn.Linear(512 * 2 * 2, 512), 
+            nn.Linear(512, 512), 
             nn.ReLU(inplace=False),
             nn.Linear(512, num_attributes),  
             nn.Dropout(0.3),
-            nn.Sigmoid(),
+            nn.Sigmoid()
         )
 
     def forward(self, z):
         print("bef Conv2d:", z.shape)  
         z = self.conv(z)
-        print("After Conv2d:", z.shape)  
-        z = z.view(z.size(0), -1) 
+        print("After Conv2d:", z.shape)
+        z = z.view(32, -1)
+        print("After Flatten:", z.shape)
         z = self.fc(z)
+        print("After fc:", z.shape)
         return z
-    
 
-torch.autograd.set_detect_anomaly(True)
+class EncoderAdversarial(nn.Module):
+    def __init__(self):
+        super(AutoEncoder, self).__init__()
+        self.encoder = Encoder()
+        self.discriminator = Discriminator()
 
-autoencoder = AutoEncoder()
-discriminator = Discriminator()
-
-optimizer_autoencoder = optim.Adam(autoencoder.parameters(), lr=0.001)
-optimizer_discriminator = optim.Adam(discriminator.parameters(), lr=0.001)
-
-reconstruction_loss = nn.MSELoss()
-discriminator_loss = nn.CrossEntropyLoss()
-
-num_epochs = 10
+    def forward(self, x, attr):
+        z = self.encoder(x)
+        attributs = self.discriminator(z)
+        return attributs
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-autoencoder.to(device)
-discriminator.to(device)
-autoencoder.load_state_dict(torch.load("autoencoder.pth"))
 
-for epoch in range(num_epochs):
-    print(f"Epoch {epoch + 1}/{num_epochs}")
-    autoencoder.train()
-    epoch_loss = 0  
-    num_batches = len(dataloader)
-    for images, attributs in tqdm(dataloader, desc=f"Training Epoch {epoch + 1}"):
-        # Autoencoder
-        images, attributs = images.to(device), attributs.to(device)
-        pred_images = autoencoder(images, attributs)
 
-        recon_loss = reconstruction_loss(pred_images, images)
 
-        optimizer_autoencoder.zero_grad()
-        recon_loss.backward()
-        optimizer_autoencoder.step()
-        epoch_loss += recon_loss.item()
 
-    epoch_loss /= num_batches
-    torch.save(autoencoder.state_dict(), "autoencoder.pth")
-    print(f"Epoch {epoch + 1}/{num_epochs} - Average Reconstruction Loss: {epoch_loss:.4f}")
 
 
 
