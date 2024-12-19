@@ -11,13 +11,16 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 class CelebADataset(Dataset):
-    def __init__(self, img_dir, attr_path, partition_path, transform=None, split="train"):
+    def __init__(self, img_dir, attr_path, partition_path, transform=None, split="train", limit= None):
         self.img_dir = img_dir
         self.transform = transform
 
         partition = pd.read_csv(partition_path, sep=",", skiprows=1, header=None, names=["image", "partition"])
 
         self.images = partition[partition["partition"] == {"train": 0, "valid": 1, "test": 2}[split]]["image"].values
+        
+        if limit:
+            self.images = self.images[:limit]
 
         self.attributes = pd.read_csv(attr_path, sep=",", header=0, index_col="image_id").replace(-1,0)
 
@@ -49,7 +52,8 @@ dataset = CelebADataset(
     attr_path="datas/list_attr_celeba.csv",
     partition_path="datas/list_eval_partition.csv",
     transform=transform,
-    split="train"
+    split="train",
+    limit = 32 * 50
 )
 print(f"Nombre d'images dans le dataset : {len(dataset)}")
 

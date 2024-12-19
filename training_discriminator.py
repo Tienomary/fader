@@ -23,7 +23,7 @@ num_epochs = 10
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 discriminator.to(device)
 encoder.to(device)
-#discriminator.load_state_dict(torch.load("discriminator.pth"))
+discriminator.load_state_dict(torch.load("discriminator.pth"))
 
 for epoch in range(num_epochs):
     print(f"Epoch {epoch + 1}/{num_epochs}")
