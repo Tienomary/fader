@@ -46,7 +46,7 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-# Créer le DataLoader
+# Créer le DataLoader trop cool
 dataset = CelebADataset(
     img_dir="datas/img_align_celeba/img_align_celeba/",
     attr_path="datas/list_attr_celeba.csv",
