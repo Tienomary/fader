@@ -21,22 +21,23 @@ encoder = Encoder()
 
 optimizer_autoencoder = optim.Adam(encoder.parameters(), lr=0.001)
 
-lambdaa=0
+lambdaa=0.00001
 
 reconstruction_loss=nn.MSELoss()
 discriminator_loss=nn.BCELoss()
 
-num_epochs = 10
+num_epochs = 100
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 encoder.to(device)
 autoencoder.to(device)
 discriminator.to(device)
+encoder.load_state_dict(torch.load('encoder.pth'))
 
 for epoch in range(num_epochs):
     print(f"Epoch {epoch + 1}/{num_epochs}")
-    autoencoder.train()
+    encoder.train()
     epoch_loss = 0  
     num_batches = len(dataloader)
     for images, attributs in tqdm(dataloader, desc=f"Training Epoch {epoch + 1}"):
@@ -45,9 +46,10 @@ for epoch in range(num_epochs):
         pred_images = autoencoder(images, attributs)
         latent_images = encoder(images)
         pred_attributs = discriminator(latent_images)
+
         inv_attributs= torch.ones(32,40).to(device)-attributs
         inv_attributs= inv_attributs.to(device)
-        lambdaa += 0.0001 / 500000
+        lambdaa += 0.0001 / 100
         adv_loss= reconstruction_loss(pred_images,images) - lambdaa*discriminator_loss(pred_attributs,inv_attributs)
       
         
@@ -57,5 +59,5 @@ for epoch in range(num_epochs):
         epoch_loss += adv_loss.item()
 
     epoch_loss /= num_batches
-    torch.save(autoencoder.state_dict(), "encoder.pth")
+    torch.save(encoder.state_dict(), "encoder.pth")
     print(f"Epoch {epoch + 1}/{num_epochs} - Average Reconstruction Loss: {epoch_loss:.4f}")
