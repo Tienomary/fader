@@ -190,13 +190,9 @@ class Discriminator(nn.Module):
         )
 
     def forward(self, z):
-        print("bef Conv2d:", z.shape)  
         z = self.conv(z)
-        print("After Conv2d:", z.shape)
         z = z.view(32, -1)
-        print("After Flatten:", z.shape)
         z = self.fc(z)
-        print("After fc:", z.shape)
         return z
 
 class EncoderAdversarial(nn.Module):
