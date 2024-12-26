@@ -59,4 +59,5 @@ for epoch in range(num_epochs):
         nb_iteration += 1
     epoch_loss /= num_batches
     torch.save(discriminator.state_dict(), "training.pth")
+    torch.save(autoencoder.state_dict(), "training_auto.pth")
     print(f"Epoch {epoch + 1}/{num_epochs} - Average Discriminator Loss: {epoch_loss:.4f}")
