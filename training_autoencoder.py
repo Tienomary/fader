@@ -26,7 +26,7 @@ num_epochs = 10
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 autoencoder.to(device)
-autoencoder.load_state_dict(torch.load("autoencoder.pth"))
+#autoencoder.load_state_dict(torch.load("autoencoder.pth"))
 
 for epoch in range(num_epochs):
     print(f"Epoch {epoch + 1}/{num_epochs}")
@@ -46,6 +46,6 @@ for epoch in range(num_epochs):
         epoch_loss += recon_loss.item()
 
     epoch_loss /= num_batches
-    torch.save(autoencoder.state_dict(), "autoencoder.pth")
+ #   torch.save(autoencoder.state_dict(), "autoencoder.pth")
     print(f"Epoch {epoch + 1}/{num_epochs} - Average Reconstruction Loss: {epoch_loss:.4f}")
 

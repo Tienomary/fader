@@ -53,7 +53,7 @@ dataset = CelebADataset(
     partition_path="datas/list_eval_partition.csv",
     transform=transform,
     split="train",
-    limit = 32 * 50
+    limit = 32 * 5000
 )
 print(f"Nombre d'images dans le dataset : {len(dataset)}")
 
@@ -128,8 +128,7 @@ class Decoder(nn.Module):
 
     def forward(self, z, attributs):
         att = attributs
-        attributs_transformed = torch.cat([(att == 1).float().unsqueeze(-1), 
-                                        (att == 0).float().unsqueeze(-1)], dim=-1)
+        attributs_transformed = torch.stack([(att == 1).float(), (att == 0).float()], dim=-1)
         latent_code = attributs_transformed.view(att.size(0), -1)
         latent_code = latent_code.unsqueeze(-1).unsqueeze(-1)
         latent_code0 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
