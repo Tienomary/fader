@@ -24,8 +24,8 @@ reconstruction_loss = nn.MSELoss()
 num_epochs = 10
 
 
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#autoencoder.to(device)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+autoencoder.to(device)
 #autoencoder.load_state_dict(torch.load("autoencoder.pth"))
 
 for epoch in range(num_epochs):
@@ -35,7 +35,7 @@ for epoch in range(num_epochs):
     num_batches = len(dataloader)
     for images, attributs in tqdm(dataloader, desc=f"Training Epoch {epoch + 1}"):
         # Autoencoder
- #       images, attributs = images.to(device), attributs.to(device)
+        images, attributs = images.to(device), attributs.to(device)
         pred_images = autoencoder(images, attributs)
 
         recon_loss = reconstruction_loss(pred_images, images)
@@ -46,6 +46,6 @@ for epoch in range(num_epochs):
         epoch_loss += recon_loss.item()
 
     epoch_loss /= num_batches
-    torch.save(autoencoder.state_dict(), "autoencoder.pth")
+ #   torch.save(autoencoder.state_dict(), "autoencoder.pth")
     print(f"Epoch {epoch + 1}/{num_epochs} - Average Reconstruction Loss: {epoch_loss:.4f}")
 
