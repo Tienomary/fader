@@ -46,14 +46,14 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-# Créer le DataLoader
+# Créer le DataLoader trop cool
 dataset = CelebADataset(
     img_dir="datas/img_align_celeba/img_align_celeba/",
     attr_path="datas/list_attr_celeba.csv",
     partition_path="datas/list_eval_partition.csv",
     transform=transform,
     split="train",
-    limit = 32 * 50
+    limit = 32 * 5000
 )
 print(f"Nombre d'images dans le dataset : {len(dataset)}")
 
@@ -83,7 +83,7 @@ for images, attrs in dataloader:
     print(attrs.shape)
     image = images[0] 
     attributs = attrs[0]
-    #affiche(dataset, image, attributs)
+    affiche(dataset, image, attributs)
     break
 
 class Encoder(nn.Module):
@@ -91,19 +91,25 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.model = nn.Sequential(
             nn.Conv2d(3, 16, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(32,affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(64,affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(128,affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(256,affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(256, 512, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(512,affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(512, 512, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2)
+            nn.BatchNorm2d(512,affine=True),
+            nn.LeakyReLU(0.2, inplace=True)
         )
 
 
@@ -119,17 +125,22 @@ class Decoder(nn.Module):
         self.relu = nn.ReLU()
         self.deconv1 = nn.ConvTranspose2d(512 + self.latent_dim, 512, kernel_size=4, stride=2, padding=1)
         self.deconv2 = nn.ConvTranspose2d(512 + self.latent_dim, 256, kernel_size=4, stride=2, padding=1)
+        self.norm2 = nn.BatchNorm2d(256,affine=True)
         self.deconv3 = nn.ConvTranspose2d(256 + self.latent_dim, 128, kernel_size=4, stride=2, padding=1)
+        self.norm3 = nn.BatchNorm2d(128,affine=True)
         self.deconv4 = nn.ConvTranspose2d(128 + self.latent_dim, 64, kernel_size=4, stride=2, padding=1)
+        self.norm4 = nn.BatchNorm2d(64,affine=True)
         self.deconv5 = nn.ConvTranspose2d(64 + self.latent_dim, 32, kernel_size=4, stride=2, padding=1)
+        self.norm5 = nn.BatchNorm2d(32,affine=True)
         self.deconv6 = nn.ConvTranspose2d(32 + self.latent_dim, 16, kernel_size=4, stride=2, padding=1)
+        self.norm6 = nn.BatchNorm2d(16,affine=True)
         self.deconv7 = nn.ConvTranspose2d(16 + self.latent_dim, 3, kernel_size=4, stride=2, padding=1)
+        self.norm7 = nn.BatchNorm2d(3,affine=True)
         
 
     def forward(self, z, attributs):
         att = attributs
-        attributs_transformed = torch.cat([(att == 1).float().unsqueeze(-1), 
-                                        (att == 0).float().unsqueeze(-1)], dim=-1)
+        attributs_transformed = torch.stack([(att == 1).float(), (att == 0).float()], dim=-1)
         latent_code = attributs_transformed.view(att.size(0), -1)
         latent_code = latent_code.unsqueeze(-1).unsqueeze(-1)
         latent_code0 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
@@ -141,32 +152,32 @@ class Decoder(nn.Module):
         latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
 
         z = torch.cat([z, latent_code1], dim=1)
-        z = self.relu(self.deconv2(z))
+        z = self.relu(self.norm2(self.deconv2(z)))
         
         latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
 
         z = torch.cat([z, latent_code1], dim=1)
-        z = self.relu(self.deconv3(z))
+        z = self.relu(self.norm3(self.deconv3(z)))
         
         latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
 
         z = torch.cat([z, latent_code1], dim=1)
-        z = self.relu(self.deconv4(z))
+        z = self.relu(self.norm4(self.deconv4(z)))
         
         latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
 
         z = torch.cat([z, latent_code1], dim=1)
-        z = self.relu(self.deconv5(z))
+        z = self.relu(self.norm5(self.deconv5(z)))
         
         latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
 
         z = torch.cat([z, latent_code1], dim=1)
-        z = self.relu(self.deconv6(z))
+        z = self.relu(self.norm6(self.deconv6(z)))
         
         latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
 
         z = torch.cat([z, latent_code1], dim=1)
-        z = self.relu(self.deconv7(z)) 
+        z = self.relu(self.norm7(self.deconv7(z)))
         return z
 
 class AutoEncoder(nn.Module):
@@ -199,16 +210,6 @@ class Discriminator(nn.Module):
         z = self.fc(z)
         return z
 
-class EncoderAdversarial(nn.Module):
-    def __init__(self):
-        super(AutoEncoder, self).__init__()
-        self.encoder = Encoder()
-        self.discriminator = Discriminator()
-
-    def forward(self, x, attr):
-        z = self.encoder(x)
-        attributs = self.discriminator(z)
-        return attributs
 
 
 
