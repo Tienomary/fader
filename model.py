@@ -46,20 +46,35 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
+batch_size = 32
 # Créer le DataLoader
-dataset = CelebADataset(
+dataset_train = CelebADataset(
     img_dir="datas/img_align_celeba/img_align_celeba/",
     attr_path="datas/list_attr_celeba.csv",
     partition_path="datas/list_eval_partition.csv",
     transform=transform,
     split="train",
-    limit = 32 * 5000
+    limit = batch_size * 5000
 )
-print(f"Nombre d'images dans le dataset : {len(dataset)}")
 
-batch_size = 32
-dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+print(f"Nombre d'images dans le dataset de train: {len(dataset_train)}")
 
+dataset_val = CelebADataset(
+    img_dir="datas/img_align_celeba/img_align_celeba/",
+    attr_path="datas/list_attr_celeba.csv",
+    partition_path="datas/list_eval_partition.csv",
+    transform=transform,
+    split="valid",
+    limit = batch_size * 625
+)
+
+print(f"Nombre d'images dans le dataset de validation: {len(dataset_val)}")
+
+
+
+
+dataloader_train = DataLoader(dataset_train, batch_size=32, shuffle=True)
+dataloader_val = DataLoader(dataset_val, batch_size=32, shuffle=False)
 
 
 # afficher une image et ses attributs
@@ -78,7 +93,7 @@ def affiche(dataset, image, attributs):
         print(f"{attribute_names[i]} : {'Oui' if attr.item() == 1 else 'Non'}")
 
 
-for images, attrs in dataloader:
+for images, attrs in dataloader_train:
     print(images.shape) 
     print(attrs.shape)
     image = images[0] 
@@ -91,19 +106,25 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.model = nn.Sequential(
             nn.Conv2d(3, 16, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(32, affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(64, affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(128, affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(256, affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(256, 512, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(512, affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(512, 512, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2)
+            nn.BatchNorm2d(512, affine=True),
+            nn.LeakyReLU(0.2, inplace=True),
         )
 
 

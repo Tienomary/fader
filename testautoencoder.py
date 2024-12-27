@@ -36,12 +36,12 @@ def affiche(dataset, image, attributs):
     for i, attr in enumerate(attributs):
         print(f"{attribute_names[i]} : {'Oui' if attr.item() == 1 else 'Non'}")
 
-for images, attrs in dataloader:
+for images, attrs in dataloader_train:
     print(images.shape) 
     print(attrs.shape)
     image = images[0] 
     attributs = attrs[0]
-    affiche(dataset, image, attributs)
+    affiche(dataset_train, image, attributs)
     output = model(images, attrs)
     print(output.shape)
     pred_images = output

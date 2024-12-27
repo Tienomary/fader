@@ -13,14 +13,17 @@ from model import *
 
 #Uniquement la fonction qui entraine le discriminateur sur 1 batch
 def train_disc(discriminator, encoder, images, attributs, discriminator_loss, optimizer_discriminator) :
-    discriminator.train()
+
     # Préparation des données
 #    images, attributs = images.to(device), attributs.to(device)
 
-    latent_images = encoder(images)
+    with torch.no_grad(): 
+        latent_images = encoder(images)
     pred_attributs = discriminator(latent_images)
     disc_loss = discriminator_loss(pred_attributs, attributs)
 
     optimizer_discriminator.zero_grad()
     disc_loss.backward()
     optimizer_discriminator.step()
+
+    return disc_loss
