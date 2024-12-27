@@ -31,7 +31,7 @@ transform = transforms.Compose([
     transforms.ToTensor()
 ])
 
-img_path = "./datas/img_align_celeba/img_align_celeba/000002.jpg"
+img_path = "./datas/img_align_celeba/img_align_celeba/000001.jpg"
 
 pil_img = Image.open(img_path).convert("RGB")
 plt.imshow(pil_img)
@@ -41,11 +41,13 @@ input_tensor = transform(pil_img).unsqueeze(0).to(device)
 
 # 3) Attributs initiaux (ex: 40 attributs CelebA)
 original_attrs = pd.read_csv("datas/list_attr_celeba.csv", sep=",", header=0, index_col="image_id").replace(-1,0)
-original_attrs = torch.from_numpy(original_attrs.loc['000002.jpg'].values.astype("float32"))
+original_attrs = torch.from_numpy(original_attrs.loc['000001.jpg'].values.astype("float32"))
 
 original_attrs = original_attrs.unsqueeze(0)
 print(original_attrs)
-modified_attrs = original_attrs.clone().to(device)
+modified_attrs = original_attrs.clone()
+modified_attrs[0][7] = 1
+modified_attrs = modified_attrs.to(device)
 print(modified_attrs)
 
 # 5) Encoder + Décoder

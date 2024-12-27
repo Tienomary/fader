@@ -15,6 +15,9 @@ opt_disc = optim.Adam(disc.parameters(), lr=1e-4, betas=(0.5, 0.999))
 criterion_bce = torch.nn.BCELoss()   
 criterion_recon = torch.nn.MSELoss()
 
+ae.load_state_dict(torch.load('training_auto.pth'))
+disc.load_state_dict(torch.load('training_disc.pth'))
+
 lambda_adv = 0.00001  
 
 # Fonctions d'entraînement

@@ -53,7 +53,7 @@ dataset = CelebADataset(
     partition_path="datas/list_eval_partition.csv",
     transform=transform,
     split="train",
-    limit = 32 * 1000
+    limit = 32 * 5000
 )
 print(f"Nombre d'images dans le dataset : {len(dataset)}")
 
@@ -83,7 +83,7 @@ for images, attrs in dataloader:
     print(attrs.shape)
     image = images[0] 
     attributs = attrs[0]
-    #affiche(dataset, image, attributs)
+    affiche(dataset, image, attributs)
     break
 
 class Encoder(nn.Module):
