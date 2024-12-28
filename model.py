@@ -46,6 +46,7 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
+batch_size = 16
 # Créer le DataLoader trop cool
 dataset = CelebADataset(
     img_dir="datas/img_align_celeba/img_align_celeba/",
@@ -53,12 +54,12 @@ dataset = CelebADataset(
     partition_path="datas/list_eval_partition.csv",
     transform=transform,
     split="train",
-    limit = 32 * 5000
+    limit = batch_size * 50
 )
 print(f"Nombre d'images dans le dataset : {len(dataset)}")
 
-batch_size = 32
-dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+#dataloader = DataLoader(dataset, batch_size=512, shuffle=True, num_workers=28, pin_memory=True)
 
 
 
@@ -206,7 +207,7 @@ class Discriminator(nn.Module):
 
     def forward(self, z):
         z = self.conv(z)
-        z = z.view(32, -1)
+        z = z.view(batch_size, -1)
         z = self.fc(z)
         return z
 
