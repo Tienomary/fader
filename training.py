@@ -1,63 +1,87 @@
-import torch.nn as nn
-from torchvision import transforms, datasets
 import torch
-from torchvision import transforms
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-from PIL import Image
-import os
-import pandas as pd
-import matplotlib.pyplot as plt
-from tqdm import tqdm
+import torch.nn.functional as F
+from torch.autograd import Variable
 from model import *
-from train_adversarial import *
-from train_disc import *
 
+# Modèles
 
-# Définiton des modèles
-discriminator = Discriminator()
-autoencoder = AutoEncoder()
-encoder = Encoder()
+ae = AutoEncoder().cuda()        
+disc = Discriminator().cuda() 
+# Optimizers
+opt_ae = optim.Adam(ae.parameters(), lr=1e-4, betas=(0.5, 0.999))
+opt_disc = optim.Adam(disc.parameters(), lr=1e-4, betas=(0.5, 0.999))
 
-# Définition des optimiseurs
-optimizer_discriminator = optim.Adam(discriminator.parameters(), lr=0.001)
-optimizer_autoencoder = optim.Adam(discriminator.parameters(), lr=0.001)
+criterion_bce = torch.nn.BCELoss()   
+criterion_recon = torch.nn.MSELoss()
 
-#Définition des loss
-discriminator_loss = nn.BCELoss()
-reconstruction_loss = reconstruction_loss = nn.MSELoss() 
+#ae.load_state_dict(torch.load('auto_good_res.pth'))
+#disc.load_state_dict(torch.load('training_disc.pth'))
 
-#Définition du nombre d'épochs d'entrainement
+lambda_adv = 0.00001  
+
+# Fonctions d'entraînement
+def train_discriminator_step(ae, disc, images, attrs):
+    """
+    entrainer le discriminateur pour qu'il devine attrs depuis z = encoder(images).
+    """
+    disc.train()
+    ae.eval()
+    with torch.no_grad():  
+        z = ae.encoder(images) 
+
+    # pred du discriminateur
+    pred_attrs = disc(z)  
+    
+    loss_disc = criterion_bce(pred_attrs, attrs)
+
+    opt_disc.zero_grad()
+    loss_disc.backward()
+    opt_disc.step()
+    
+    return loss_disc.item()
+
+def train_autoencoder_step(ae, disc, images, attrs):
+    """
+    Entraîner l'auto-encodeur (encoder+decoder).
+    - disc est en eval (pas de mise à jour du disc)
+    - ae est en train
+    """
+    ae.train()
+    disc.eval()
+    recon = ae(images, attrs)
+    loss_recon = criterion_recon(recon, images)
+    z = ae.encoder(images)
+    pred_attrs = disc(z)
+    loss_adv = criterion_bce(pred_attrs, 1.0 - attrs)
+    
+    loss_ae =  loss_recon + lambda_adv * loss_adv
+    
+    # Backprop seulement sur l'auto-encodeur
+    opt_ae.zero_grad()
+    loss_ae.backward()
+    opt_ae.step()
+    
+    return loss_recon.item(), loss_adv.item()
+
+# Boucle d'entraînement globale
 num_epochs = 10
 
-#Initialisation du paramètre d'entrainement adversariale lambda_e
-lambda_e = 0
-
-#Initialisation du nombre d'itération de l'entrainement
-nb_iteration = 0
-
-#Définition du paramètre à modifier
-y = 6
-# Détection du GPU/CPU
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-discriminator.to(device)
-encoder.to(device)
-autoencoder.to(device)
-
 for epoch in range(num_epochs):
-    print(f"Epoch {epoch + 1}/{num_epochs}")
-    discriminator.train()
-    epoch_loss = 0  
-    num_batches = len(dataloader)
-    for images, attributs in tqdm(dataloader, desc=f"Training Epoch {epoch + 1}"):
-        images, attributs = images.to(device), attributs.to(device)
-        if nb_iteration >= 500:
-            #Définition du paramètre d'entrainement adversariale lambda_e
-            lambda_e += 0.0001
-        train_adversarial(autoencoder, encoder, discriminator, y, images, attributs, reconstruction_loss, discriminator_loss, optimizer_autoencoder, lambda_e)
-        train_disc(discriminator, encoder, images, attributs, discriminator_loss, optimizer_discriminator)
-        nb_iteration += 1
-    epoch_loss /= num_batches
-    torch.save(discriminator.state_dict(), "training.pth")
-    torch.save(autoencoder.state_dict(), "training_auto.pth")
-    print(f"Epoch {epoch + 1}/{num_epochs} - Average Discriminator Loss: {epoch_loss:.4f}")
+    for i, (images, attrs) in enumerate(dataloader):
+        images = images.cuda()
+        attrs = attrs.cuda()
+        
+        loss_disc = train_discriminator_step(ae, disc, images, attrs)
+        
+        loss_rec, loss_adv = train_autoencoder_step(ae, disc, images, attrs)
+        
+        if i % 50 == 0:
+            print(f"Epoch {epoch} / {num_epochs} - Batch {i}/{len(dataloader)}")
+            print(f"  Discriminator loss: {loss_disc:.4f}")
+            print(f"  AE reconstruction loss: {loss_rec:.4f}, AE adv loss: {loss_adv:.4f}")
+    
+    torch.save(ae.state_dict(), "training_auto.pth")
+    torch.save(disc.state_dict(), "training_disc.pth")
+
+print("Fin de l'entraînement.")
