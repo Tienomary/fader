@@ -21,7 +21,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # 1) Charger le modèle entraîné
 autoencoder = AutoEncoder().to(device)
-autoencoder.load_state_dict(torch.load("training_auto.pth", map_location=device))
+autoencoder.load_state_dict(torch.load("auto_good_res.pth", map_location=device))
 autoencoder.eval()
 
 # 2) Préparer l'image

@@ -22,7 +22,7 @@ class CelebADataset(Dataset):
         if limit:
             self.images = self.images[:limit]
 
-        self.attributes = pd.read_csv(attr_path, sep=";", header=0, index_col="image_id").replace(-1,0)
+        self.attributes = pd.read_csv(attr_path, sep=",", header=0, index_col="image_id").replace(-1,0)
 
     def __len__(self):
         return len(self.images)
@@ -50,7 +50,7 @@ batch_size = 16
 # Créer le DataLoader trop cool
 dataset = CelebADataset(
     img_dir="datas/img_align_celeba/img_align_celeba/",
-    attr_path="datas/list_attr_celeba_short.csv",
+    attr_path="datas/list_attr_celeba_cleaned.csv",
     partition_path="datas/list_eval_partition.csv",
     transform=transform,
     split="train",
@@ -84,7 +84,7 @@ for images, attrs in dataloader:
     print(attrs.shape)
     image = images[0] 
     attributs = attrs[0]
-    #affiche(dataset, image, attributs)
+    affiche(dataset, image, attributs)
     break
 
 class Encoder(nn.Module):
@@ -119,7 +119,7 @@ class Encoder(nn.Module):
         return x
 
 class Decoder(nn.Module):
-    def __init__(self, latent_dim=512, num_attributes=9):
+    def __init__(self, latent_dim=512, num_attributes=5):
         super(Decoder, self).__init__()
         self.num_attributes = num_attributes
         self.latent_dim = 2 * num_attributes
@@ -193,7 +193,7 @@ class AutoEncoder(nn.Module):
         return output_image
     
 class Discriminator(nn.Module):
-    def __init__(self, latent_dim=512, num_attributes=9):
+    def __init__(self, latent_dim=512, num_attributes=5):
         super(Discriminator, self).__init__()
         # c512: une  couche convol
         self.conv = nn.Conv2d(latent_dim, 512, kernel_size=4, stride=2, padding=1) 

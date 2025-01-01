@@ -27,7 +27,7 @@ autoencoder.eval()
 # 2) Préparer l'image
 transform = transforms.Compose([
     transforms.Resize((256, 256)),
-    transforms.ToTensor()
+    transforms.ToTensor(),
 ])
 
 img_path = "./datas/img_align_celeba/img_align_celeba/000008.jpg"
