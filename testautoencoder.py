@@ -17,7 +17,7 @@ model.load_state_dict(torch.load("autoencoder.pth"))
 model.eval()
 
             
-image_path = "datas/img_align_celeba/img_align_celeba/000001.jpg"
+image_path = "datas/img_align_celeba/img_align_celeba/000002.jpg"
 image = Image.open(image_path).convert("RGB")  
 
 
