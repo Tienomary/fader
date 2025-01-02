@@ -43,7 +43,7 @@ s = 500000
 nb_iteration = 0
 
 #Définition du paramètre à modifier
-y = 6
+y = 20
 # Détection du GPU/CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 discriminator.to(device)
