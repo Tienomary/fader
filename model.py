@@ -73,8 +73,10 @@ print(f"Nombre d'images dans le dataset de validation: {len(dataset_val)}")
 
 
 
-dataloader_train = DataLoader(dataset_train, batch_size=32, shuffle=True)
-dataloader_val = DataLoader(dataset_val, batch_size=32, shuffle=False)
+dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True)
+dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False)
+#dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=True, num_workers=28, pin_memory=True)
+#dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=False, num_workers=28, pin_memory=True)
 
 
 # afficher une image et ses attributs
@@ -215,7 +217,7 @@ class Discriminator(nn.Module):
 
     def forward(self, z):
         z = self.conv(z)
-        z = z.view(32, -1)
+        z = z.view(batch_size, -1)
         z = self.fc(z)
         return z
 
