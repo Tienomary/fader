@@ -100,7 +100,7 @@ for images, attrs in dataloader_train:
     print(attrs.shape)
     image = images[0] 
     attributs = attrs[0]
-    #affiche(dataset, image, attributs)
+    #affiche(dataset_train, image, attributs)
     break
 
 class Encoder(nn.Module):

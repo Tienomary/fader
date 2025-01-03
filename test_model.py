@@ -41,7 +41,9 @@ original_attrs = torch.from_numpy(original_attrs.loc['000007.jpg'].values.astype
 
 original_attrs = original_attrs.unsqueeze(0)
 print(original_attrs)
-modified_attrs = original_attrs.clone()
+modified_attr = original_attrs.clone()
+modified_attrs = 1-modified_attr[0][20]
+modified_attrs = modified_attrs.unsqueeze(0)
 
 #modified_attrs = 1.0 - modified_attrs
 
@@ -65,7 +67,7 @@ modified_attrs = original_attrs.clone()
 #modified_attrs[0][17] = 0  # Gray_Hair
 #modified_attrs[0][18] = 1  # Heavy_Makeup
 #modified_attrs[0][19] = 1  # High_Cheekbones
-modified_attrs[0][20] = 1  # Male
+#modified_attrs[0][20] = 1  # Male
 #modified_attrs[0][21] = 1  # Mouth_Slightly_Open
 #modified_attrs[0][22] = 1  # Mustache
 #modified_attrs[0][23] = 1  # Narrow_Eyes
