@@ -95,6 +95,10 @@ for epoch in range(num_epochs):
             recon_images = autoencoder.decoder(latent_images, attributs)
             recon_loss = reconstruction_loss(images, recon_images)
             ae_val_loss += recon_loss.item()
+    vect_train_ae_loss.append(ae_train_loss / len(dataloader_train))
+    vect_train_disc_loss.append(disc_train_loss / len(dataloader_train))
+    vect_val_ae_loss.append(ae_val_loss / len(dataloader_val))
+    vect_val_disc_loss.append(disc_val_loss / len(dataloader_val))
     with open('vect_train_ae_loss.txt', 'w') as f:
         for item in vect_train_ae_loss:
             f.write("%s\n" % item)
@@ -111,10 +115,6 @@ for epoch in range(num_epochs):
         for item in vect_val_disc_loss:
             f.write("%s\n" % item)
 
-    vect_train_ae_loss.append(ae_train_loss / len(dataloader_train))
-    vect_train_disc_loss.append(disc_train_loss / len(dataloader_train))
-    vect_val_ae_loss.append(ae_val_loss / len(dataloader_val))
-    vect_val_disc_loss.append(disc_val_loss / len(dataloader_val))
 
     torch.save(discriminator.state_dict(), "discriminator.pth")
     torch.save(autoencoder.state_dict(), "autoencoder.pth")
