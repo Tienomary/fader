@@ -135,7 +135,7 @@ class Encoder(nn.Module):
         return x
 
 class Decoder(nn.Module):
-    def __init__(self, latent_dim=512, num_attributes=40):
+    def __init__(self, latent_dim=512, num_attributes=1):
         super(Decoder, self).__init__()
         self.num_attributes = num_attributes
         self.latent_dim = 2 * num_attributes
@@ -203,7 +203,7 @@ class AutoEncoder(nn.Module):
         return output_image
     
 class Discriminator(nn.Module):
-    def __init__(self, latent_dim=512, num_attributes=40):
+    def __init__(self, latent_dim=512, num_attributes=1):
         super(Discriminator, self).__init__()
         # c512: une  couche convol
         self.conv = nn.Conv2d(latent_dim, 512, kernel_size=4, stride=2, padding=1) 

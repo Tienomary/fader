@@ -13,7 +13,7 @@ from model import *
 
 #entrainement pour 1 batch:
 #y est le numéro de l'attribut qui doit être changé
-def train_adversarial(autoencoder, encoder, discriminator, y, images, attributs, reconstruction_loss, discriminator_loss, optimizer_autoencoder, lambda_e) :
+def train_adversarial(autoencoder, discriminator, images, attributs, reconstruction_loss, discriminator_loss, optimizer_autoencoder, lambda_e) :
 # Entraînement
     
     # Préparation des données
@@ -25,10 +25,10 @@ def train_adversarial(autoencoder, encoder, discriminator, y, images, attributs,
     # Prédire les attributs à partir des représentations latentes
     pred_images = autoencoder(images, attributs)
     recon_loss = reconstruction_loss(pred_images, images)
-    latent_images = encoder(images)
+    latent_images = autoencoder.encoder(images)
     with torch.no_grad():  # Pas de gradient pour le discriminateur
         pred_attributs = discriminator(latent_images)
-    attributs[y]=1-attributs[y]
+    attributs=1-attributs
     disc_loss = discriminator_loss(pred_attributs, attributs) # On a bien l'attribut qui nous intéresse qui est modifié 
     # Calcul de la perte adversariale
     adversarial_loss = recon_loss+lambda_e*disc_loss

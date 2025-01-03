@@ -12,13 +12,13 @@ from tqdm import tqdm
 from model import *
 
 #Uniquement la fonction qui entraine le discriminateur sur 1 batch
-def train_disc(discriminator, encoder, images, attributs, discriminator_loss, optimizer_discriminator) :
+def train_disc(discriminator, autoencoder, images, attributs, discriminator_loss, optimizer_discriminator) :
 
     # Préparation des données
 #    images, attributs = images.to(device), attributs.to(device)
 
     with torch.no_grad(): 
-        latent_images = encoder(images)
+        latent_images = autoencoder.encoder(images)
     pred_attributs = discriminator(latent_images)
     disc_loss = discriminator_loss(pred_attributs, attributs)
 
