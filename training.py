@@ -99,6 +99,7 @@ for epoch in range(num_epochs):
     vect_train_disc_loss.append(disc_train_loss / len(dataloader_train))
     vect_val_ae_loss.append(ae_val_loss / len(dataloader_val))
     vect_val_disc_loss.append(disc_val_loss / len(dataloader_val))
+    
     with open('vect_train_ae_loss.txt', 'w') as f:
         for item in vect_train_ae_loss:
             f.write("%s\n" % item)
