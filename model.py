@@ -140,6 +140,7 @@ class Decoder(nn.Module):
         self.num_attributes = num_attributes
         self.latent_dim = 2 * num_attributes
         self.relu = nn.ReLU()
+        self.tanh = nn.Tanh()
         self.deconv1 = nn.ConvTranspose2d(512 + self.latent_dim, 512, kernel_size=4, stride=2, padding=1)
         self.deconv2 = nn.ConvTranspose2d(512 + self.latent_dim, 256, kernel_size=4, stride=2, padding=1)
         self.deconv3 = nn.ConvTranspose2d(256 + self.latent_dim, 128, kernel_size=4, stride=2, padding=1)
@@ -188,7 +189,7 @@ class Decoder(nn.Module):
         latent_code1 = latent_code.expand(-1, -1, z.shape[2], z.shape[3])
 
         z = torch.cat([z, latent_code1], dim=1)
-        z = self.relu(self.deconv7(z)) 
+        z = self.tanh(self.deconv7(z)) 
         return z
 
 class AutoEncoder(nn.Module):
@@ -231,8 +232,6 @@ class EncoderAdversarial(nn.Module):
         z = self.encoder(x)
         attributs = self.discriminator(z)
         return attributs
-
-
 
 
 
