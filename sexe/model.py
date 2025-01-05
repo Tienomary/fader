@@ -49,9 +49,9 @@ transform = transforms.Compose([
 batch_size = 32
 # Créer le DataLoader
 dataset_train = CelebADataset(
-    img_dir="../datas/img_align_celeba/img_align_celeba/",
-    attr_path="../datas/list_attr_celeba.csv",
-    partition_path="../datas/list_eval_partition.csv",
+    img_dir="datas/img_align_celeba/img_align_celeba/",
+    attr_path="datas/list_attr_celeba.csv",
+    partition_path="datas/list_eval_partition.csv",
     transform=transform,
     split="train",
     limit = batch_size * 5000
@@ -60,9 +60,9 @@ dataset_train = CelebADataset(
 print(f"Nombre d'images dans le dataset de train: {len(dataset_train)}")
 
 dataset_val = CelebADataset(
-    img_dir="../datas/img_align_celeba/img_align_celeba/",
-    attr_path="../datas/list_attr_celeba.csv",
-    partition_path="../datas/list_eval_partition.csv",
+    img_dir="datas/img_align_celeba/img_align_celeba/",
+    attr_path="datas/list_attr_celeba.csv",
+    partition_path="datas/list_eval_partition.csv",
     transform=transform,
     split="valid",
     limit = batch_size * 600
