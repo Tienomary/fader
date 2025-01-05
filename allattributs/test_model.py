@@ -15,13 +15,19 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from PIL import Image
 import matplotlib.pyplot as plt
-
+#CONFIG 
 image_name = "001215.jpg"
+
+invert_att = True #Mettre sur True pour inverser l'ensemble des attributs 
+
+#Pour modifier un attribut en particulier, il faut décommenter les lignes 49 à 88 et modifier les valeurs des attributs
+
+
 
 #choix du device et chargement du modèle 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 autoencoder = AutoEncoder().to(device)
-autoencoder.load_state_dict(torch.load("autoencoder.pth", map_location=device))
+autoencoder.load_state_dict(torch.load("allattributs/auto_good_res.pth", map_location=device))
 autoencoder.eval()
 #transformation de l'image et chargement de celle-ci + affichage
 transform = transforms.Compose([
@@ -39,11 +45,10 @@ input_tensor = transform(pil_img).unsqueeze(0).to(device)
 original_attrs = pd.read_csv("datas/list_attr_celeba.csv", sep=",", header=0, index_col="image_id").replace(-1,0)
 original_attrs = torch.from_numpy(original_attrs.loc[image_name].values.astype("float32"))
 original_attrs = original_attrs.unsqueeze(0)
-modified_attr = original_attrs.clone()
+modified_attrs = original_attrs.clone()
 
-modified_attrs = 1-modified_attr[0][20] #ici on modifie l'attribut numéro 20 qui correspond au genre de la personne (0 pour femme et 1 pour homme) 
-
-modified_attrs = modified_attrs.unsqueeze(0) #on rajoute une dimension pour correspondre à la taille de l'input du modèle
+if invert_att:
+    modified_attrs = 1 - modified_attrs
 
 #modified_attrs[0][0] = 1   # 5_o_Clock_Shadow
 #modified_attrs[0][1] = 1   # Arched_Eyebrows
