@@ -18,6 +18,10 @@ from train_disc import *
 discriminator = Discriminator()
 autoencoder = AutoEncoder()
 
+#Chargement des fichiers de poids
+autoencoder.load_state_dict(torch.load('autoencoder.pth'), strict=True) 
+discriminator.load_state_dict(torch.load('discriminator.pth'), strict=True) 
+
 # Définition des optimiseurs
 optimizer_discriminator = optim.Adam(discriminator.parameters(), lr=2e-3, betas=(0.5, 0.999))
 optimizer_autoencoder = optim.Adam(autoencoder.parameters(), lr=2e-3, betas=(0.5, 0.999))
@@ -100,21 +104,17 @@ for epoch in range(num_epochs):
     vect_val_ae_loss.append(ae_val_loss / len(dataloader_val))
     vect_val_disc_loss.append(disc_val_loss / len(dataloader_val))
     
-    with open('vect_train_ae_loss.txt', 'w') as f:
-        for item in vect_train_ae_loss:
-            f.write("%s\n" % item)
+    with open('vect_train_ae_loss.txt', 'a') as f:
+        f.write(f"{ae_train_loss / len(dataloader_train)}\n") 
 
-    with open('vect_train_disc_loss.txt', 'w') as f:
-        for item in vect_train_disc_loss:
-            f.write("%s\n" % item)
+    with open('vect_train_disc_loss.txt', 'a') as f:
+        f.write(f"{disc_train_loss / len(dataloader_train)}\n") 
 
-    with open('vect_val_ae_loss.txt', 'w') as f:
-        for item in vect_val_ae_loss:
-            f.write("%s\n" % item)
+    with open('vect_val_ae_loss.txt', 'a') as f:
+        f.write(f"{ae_val_loss / len(dataloader_val)}\n") 
 
-    with open('vect_val_disc_loss.txt', 'w') as f:
-        for item in vect_val_disc_loss:
-            f.write("%s\n" % item)
+    with open('vect_val_disc_loss.txt', 'a') as f:
+        f.write(f"{disc_val_loss / len(dataloader_val)}\n") 
 
 
     torch.save(discriminator.state_dict(), "discriminator.pth")

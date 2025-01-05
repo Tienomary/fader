@@ -54,7 +54,7 @@ dataset_train = CelebADataset(
     partition_path="datas/list_eval_partition.csv",
     transform=transform,
     split="train",
-    limit = batch_size * 5
+    limit = batch_size * 5000
 )
 
 print(f"Nombre d'images dans le dataset de train: {len(dataset_train)}")
@@ -65,7 +65,7 @@ dataset_val = CelebADataset(
     partition_path="datas/list_eval_partition.csv",
     transform=transform,
     split="valid",
-    limit = batch_size * 1
+    limit = batch_size * 600
 )
 
 print(f"Nombre d'images dans le dataset de validation: {len(dataset_val)}")
